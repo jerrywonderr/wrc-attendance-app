@@ -1,0 +1,290 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+interface Summary {
+  total_registered: number;
+  day1_count: number;
+  day2_count: number;
+  day3_count: number;
+  day4_count: number;
+}
+
+interface Attendee {
+  id: string;
+  uid: string;
+  name: string;
+  phone: string;
+  attendance?: {
+    day1: boolean;
+    day2: boolean;
+    day3: boolean;
+    day4: boolean;
+  };
+}
+
+export default function AdminPage() {
+  const [summary, setSummary] = useState<Summary | null>(null);
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [filterDays, setFilterDays] = useState<number[]>([]);
+  const [password, setPassword] = useState("");
+  const [authenticated, setAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const auth = localStorage.getItem("admin_auth");
+    if (auth === "authenticated") {
+      setAuthenticated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (authenticated) {
+      fetchData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authenticated]);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin123";
+    if (password === adminPassword) {
+      localStorage.setItem("admin_auth", "authenticated");
+      setAuthenticated(true);
+      fetchData();
+    } else {
+      alert("Invalid password");
+    }
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [summaryRes, attendeesRes] = await Promise.all([
+        fetch("/api/attendance/summary"),
+        fetch(
+          `/api/attendees?page=${page}&limit=50&search=${encodeURIComponent(
+            search
+          )}&days=${filterDays.join(",")}`
+        ),
+      ]);
+
+      const summaryData = await summaryRes.json();
+      const attendeesData = await attendeesRes.json();
+
+      if (summaryData.success) setSummary(summaryData.summary);
+      if (attendeesData.success) setAttendees(attendeesData.attendees);
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (authenticated) {
+      fetchData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, search, filterDays, authenticated]);
+
+  const toggleDayFilter = (day: number) => {
+    setFilterDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
+  };
+
+  const exportCSV = () => {
+    const headers = ["UID", "Name", "Phone", "Day1", "Day2", "Day3", "Day4"];
+    const rows = attendees.map((a) => [
+      a.uid,
+      a.name,
+      a.phone,
+      a.attendance?.day1 ? "Yes" : "No",
+      a.attendance?.day2 ? "Yes" : "No",
+      a.attendance?.day3 ? "Yes" : "No",
+      a.attendance?.day4 ? "Yes" : "No",
+    ]);
+    const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `attendance-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+  };
+
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+          <h1 className="text-2xl font-bold mb-2">WRC 2025 Admin Login</h1>
+          <p className="text-sm text-gray-600 mb-6">
+            Spirit Chapel International Church
+          </p>
+          <form onSubmit={handleLogin}>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter admin password"
+              className="w-full px-4 py-2 border rounded-lg mb-4 focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="submit"
+              className="w-full py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+            >
+              Login
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">WRC 2025 Admin Dashboard</h1>
+            <p className="text-gray-600">Spirit Chapel International Church</p>
+          </div>
+          <button
+            onClick={() => {
+              localStorage.removeItem("admin_auth");
+              setAuthenticated(false);
+            }}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Logout
+          </button>
+        </div>
+
+        {summary && (
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <p className="text-gray-600 text-sm">Total Registered</p>
+              <p className="text-3xl font-bold">{summary.total_registered}</p>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <p className="text-gray-600 text-sm">Day 1</p>
+              <p className="text-3xl font-bold">{summary.day1_count}</p>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <p className="text-gray-600 text-sm">Day 2</p>
+              <p className="text-3xl font-bold">{summary.day2_count}</p>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <p className="text-gray-600 text-sm">Day 3</p>
+              <p className="text-3xl font-bold">{summary.day3_count}</p>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <p className="text-gray-600 text-sm">Day 4</p>
+              <p className="text-3xl font-bold">{summary.day4_count}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <p className="text-sm text-gray-600 mb-4">
+            WRC 2025 - Spirit Chapel International Church
+          </p>
+          <div className="flex flex-wrap gap-4 mb-4">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name or phone..."
+              className="flex-1 min-w-[200px] px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+            <div className="flex gap-2">
+              {[1, 2, 3, 4].map((day) => (
+                <label
+                  key={day}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={filterDays.includes(day)}
+                    onChange={() => toggleDayFilter(day)}
+                    className="w-4 h-4"
+                  />
+                  <span>Day {day}</span>
+                </label>
+              ))}
+            </div>
+            <button
+              onClick={exportCSV}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              Export CSV
+            </button>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-12">Loading...</div>
+        ) : (
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left">UID</th>
+                    <th className="px-4 py-3 text-left">Name</th>
+                    <th className="px-4 py-3 text-left">Phone</th>
+                    <th className="px-4 py-3 text-center">Day1</th>
+                    <th className="px-4 py-3 text-center">Day2</th>
+                    <th className="px-4 py-3 text-center">Day3</th>
+                    <th className="px-4 py-3 text-center">Day4</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {attendees.map((attendee) => (
+                    <tr key={attendee.id} className="border-t">
+                      <td className="px-4 py-3">{attendee.uid}</td>
+                      <td className="px-4 py-3">{attendee.name}</td>
+                      <td className="px-4 py-3">{attendee.phone}</td>
+                      <td className="px-4 py-3 text-center">
+                        {attendee.attendance?.day1 ? "✓" : "✗"}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {attendee.attendance?.day2 ? "✓" : "✗"}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {attendee.attendance?.day3 ? "✓" : "✗"}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {attendee.attendance?.day4 ? "✓" : "✗"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-4 py-3 border-t flex justify-between">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="py-2">Page {page}</span>
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={attendees.length < 50}
+                className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
