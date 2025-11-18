@@ -4,7 +4,6 @@ import BackgroundWrapper from "@/components/BackgroundWrapper";
 import Card from "@/components/Card";
 import { registerAttendee } from "@/lib/client-utils";
 import { yupResolver } from "@hookform/resolvers/yup";
-import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -47,6 +46,7 @@ export default function RegisterPage() {
   const [registered, setRegistered] = React.useState(false);
   const [qrImageUrls, setQrImageUrls] = React.useState<QRData | null>(null);
   const [uid, setUid] = React.useState("");
+  const [name, setName] = React.useState("");
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -56,6 +56,7 @@ export default function RegisterPage() {
         const formattedPhone = data.phone.replace(/\D/g, "");
         localStorage.setItem("wrc_phone", formattedPhone);
         setUid(result.uid);
+        setName(data.name);
         setQrImageUrls(result.qr_image_urls);
         setRegistered(true);
       }
@@ -99,7 +100,7 @@ export default function RegisterPage() {
   if (registered && qrImageUrls) {
     return (
       <BackgroundWrapper className="flex items-center justify-center py-12 px-4 md:block">
-        <div className="max-w-4xl mx-auto flex justify-center md:block">
+        <div className="max-w-2xl mx-auto flex justify-center md:block">
           <Card className="w-full md:w-auto">
             <h1 className="text-3xl font-bold mb-2">
               Registration Successful!
@@ -107,9 +108,14 @@ export default function RegisterPage() {
             <p className="text-gray-600 mb-4">
               WRC 2025 - Spirit Chapel International Church
             </p>
-            <p className="text-gray-600 mb-4">
-              Your UID: <strong>{uid}</strong>
-            </p>
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+              <p className="text-gray-700 mb-1">
+                <span className="font-semibold">Name:</span> {name}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">UID:</span> {uid}
+              </p>
+            </div>
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
               <h3 className="font-semibold text-purple-900 mb-2">
                 💡 Quick Access Feature
@@ -117,7 +123,7 @@ export default function RegisterPage() {
               <p className="text-purple-800 text-sm mb-2">
                 <strong>Good news!</strong> You don&apos;t need to download
                 these QR codes if you don&apos;t want to. During the program
-                (Dec 11-14), you can simply visit the{" "}
+                (Nov 16-19), you can simply visit the{" "}
                 <Link href="/confirm" className="underline font-semibold">
                   Confirm Attendance
                 </Link>{" "}
@@ -133,64 +139,74 @@ export default function RegisterPage() {
                 codes saved on your device!
               </p>
             </div>
-            <p className="text-gray-600 mb-4">
-              Or download these QR codes for each day (optional):
-            </p>
 
-            <div className="flex gap-2 justify-center mb-6">
-              <button
-                onClick={downloadAll}
-                className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
-              >
-                Download All QR Codes
-              </button>
-              <button
-                onClick={shareAllWhatsApp}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
-              >
-                Share All via WhatsApp
-              </button>
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-4 text-center">
+                Download or Share All QR Codes
+              </h3>
+              <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                <button
+                  onClick={downloadAll}
+                  className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center gap-2"
+                >
+                  <span>📥</span>
+                  <span>Download All QR Codes</span>
+                </button>
+                <button
+                  onClick={shareAllWhatsApp}
+                  className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center gap-2"
+                >
+                  <span>💬</span>
+                  <span>Share All via WhatsApp</span>
+                </button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {[1, 2, 3, 4].map((day) => (
-                <div key={day} className="border rounded-lg p-4 text-center">
-                  <h3 className="text-xl font-semibold mb-4">Day {day}</h3>
-                  <div className="mb-4 flex justify-center">
-                    <Image
-                      src={qrImageUrls[`day${day}` as keyof QRData]}
-                      alt={`Day ${day} QR Code`}
-                      width={200}
-                      height={200}
-                      className="border rounded"
-                    />
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-4 text-center">
+                Individual QR Codes
+              </h3>
+              <div className="space-y-3">
+                {[1, 2, 3, 4].map((day) => (
+                  <div
+                    key={day}
+                    className="border rounded-lg p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center font-semibold text-purple-700">
+                        {day}
+                      </div>
+                      <span className="font-medium text-gray-700">
+                        Day {day}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() =>
+                          downloadQR(
+                            day,
+                            qrImageUrls[`day${day}` as keyof QRData]
+                          )
+                        }
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-sm font-semibold"
+                      >
+                        Download
+                      </button>
+                      <button
+                        onClick={() =>
+                          shareWhatsApp(
+                            day,
+                            qrImageUrls[`day${day}` as keyof QRData]
+                          )
+                        }
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-sm font-semibold"
+                      >
+                        Share
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2 justify-center">
-                    <button
-                      onClick={() =>
-                        downloadQR(
-                          day,
-                          qrImageUrls[`day${day}` as keyof QRData]
-                        )
-                      }
-                      className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-                    >
-                      Download
-                    </button>
-                    <button
-                      onClick={() =>
-                        shareWhatsApp(
-                          day,
-                          qrImageUrls[`day${day}` as keyof QRData]
-                        )
-                      }
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                    >
-                      Share WhatsApp
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             <div className="text-center">

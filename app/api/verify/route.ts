@@ -59,7 +59,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!isDayReached(day)) {
+    const dayReached = isDayReached(day);
+    if (!dayReached) {
       return NextResponse.json(
         {
           success: false,
@@ -82,7 +83,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!verifyQRSignature(uid, day, sig, attendee.qr_secret)) {
+    // Verify signature cryptographically using qr_secret + QR_SIGNATURE_SECRET
+    // This is the anti-forgery mechanism - prevents attackers from forging URLs
+    const signatureValid = verifyQRSignature(uid, day, sig, attendee.qr_secret);
+    
+    if (!signatureValid) {
       return NextResponse.json(
         { success: false, reason: "Invalid QR signature" },
         { status: 400 }
@@ -137,7 +142,7 @@ export async function POST(request: NextRequest) {
       scan_time: log.scan_time,
     });
   } catch (error) {
-    console.error("Verification error:", error);
+    console.error("[VERIFY] Error:", error);
     return NextResponse.json(
       { success: false, reason: "Internal server error" },
       { status: 500 }

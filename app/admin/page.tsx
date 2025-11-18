@@ -47,15 +47,29 @@ export default function AdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authenticated]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin123";
-    if (password === adminPassword) {
-      localStorage.setItem("admin_auth", "authenticated");
-      setAuthenticated(true);
-      fetchData();
-    } else {
-      alert("Invalid password");
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: password }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        localStorage.setItem("admin_auth", "authenticated");
+        setAuthenticated(true);
+        fetchData();
+      } else {
+        alert(data.reason || "Invalid password");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Failed to authenticate. Please try again.");
     }
   };
 

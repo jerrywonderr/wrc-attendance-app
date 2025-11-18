@@ -1,7 +1,15 @@
 import crypto from "crypto";
 
-const QR_SECRET = process.env.QR_SIGNATURE_SECRET || "change-me-in-production";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+if (!process.env.QR_SIGNATURE_SECRET) {
+  throw new Error("QR_SIGNATURE_SECRET environment variable is required");
+}
+
+if (!process.env.NEXT_PUBLIC_APP_URL) {
+  throw new Error("NEXT_PUBLIC_APP_URL environment variable is required");
+}
+
+const QR_SECRET = process.env.QR_SIGNATURE_SECRET;
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
 
 export function generateQRSignature(
   uid: string,
@@ -23,6 +31,7 @@ export function verifyQRSignature(
     .createHmac("sha256", QR_SECRET)
     .update(payload)
     .digest("hex");
+  
   return expectedSig === sig;
 }
 
