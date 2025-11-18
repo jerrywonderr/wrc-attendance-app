@@ -16,31 +16,34 @@ export default function Home() {
           <p className="text-lg text-gray-600 mb-12">
             Register for attendance and receive your personalized QR codes
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col gap-4">
             <Link
               href="/register"
-              className="px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold text-lg hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-center flex items-center justify-center"
+              className="w-full px-8 py-4 rounded-lg font-bold text-lg hover:scale-105 transition-transform duration-300 ease-in-out text-center flex items-center justify-center shadow-lg animate-pulse-slow md:text-xl"
+              style={{ color: "white" }}
             >
               Register Now
             </Link>
-            <Link
-              href="/retrieve"
-              className="px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold text-lg hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-center flex items-center justify-center"
-            >
-              Retrieve QR Codes
-            </Link>
-            <Link
-              href="/confirm"
-              className="px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold text-lg hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-center flex items-center justify-center"
-            >
-              Confirm Attendance
-            </Link>
-            <Link
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link
+                href="/retrieve"
+                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg font-medium text-sm hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-center flex items-center justify-center"
+              >
+                Retrieve QR Codes
+              </Link>
+              <Link
+                href="/confirm"
+                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg font-medium text-sm hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-center flex items-center justify-center"
+              >
+                Confirm Attendance
+              </Link>
+            </div>
+            {/* <Link
               href="/admin"
-              className="px-8 py-4 bg-black text-white rounded-lg font-semibold text-lg hover:bg-gray-900 transition-all duration-300 ease-in-out transform hover:scale-105 text-center flex items-center justify-center"
+              className="w-full px-8 py-4 bg-black text-white rounded-lg font-semibold text-lg hover:bg-gray-900 transition-all duration-300 ease-in-out transform hover:scale-105 text-center flex items-center justify-center"
             >
               Admin Dashboard
-            </Link>
+            </Link> */}
           </div>
         </Card>
       </div>

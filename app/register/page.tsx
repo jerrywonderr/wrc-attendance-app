@@ -217,6 +217,7 @@ export default function RegisterPage() {
               <label className="block text-sm font-medium mb-1">Name *</label>
               <input
                 type="text"
+                placeholder="e.g., John Doe"
                 {...register("name")}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
               />
@@ -250,6 +251,11 @@ export default function RegisterPage() {
               {isSubmitting ? "Registering..." : "Register"}
             </button>
           </form>
+          <div className="mt-6 text-center">
+            <Link href="/" className="text-purple-600 hover:underline">
+              ← Back to Home
+            </Link>
+          </div>
         </Card>
       </div>
     </BackgroundWrapper>
