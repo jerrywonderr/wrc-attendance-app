@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     });
 
     const matchingAttendeeIds = Array.from(attendeeDayCounts.entries())
-      .filter(([_, daySet]) => daySet.size === days.length)
+      .filter(([, daySet]) => daySet.size === days.length)
       .map(([attendeeId]) => attendeeId);
 
     if (matchingAttendeeIds.length === 0) {

@@ -14,7 +14,8 @@ export default function Home() {
             Spirit Chapel International Church
           </p>
           <p className="text-lg text-gray-600 mb-12">
-            Register for attendance and receive your personalized QR codes
+            Register once, then simply scan the official daily QR code at the
+            venue to confirm your attendance.
           </p>
           <div className="flex flex-col gap-4">
             <Link
@@ -24,20 +25,12 @@ export default function Home() {
             >
               Register Now
             </Link>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                href="/retrieve"
-                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg font-medium text-sm hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-center flex items-center justify-center"
-              >
-                Retrieve QR Codes
-              </Link>
-              <Link
-                href="/confirm"
-                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg font-medium text-sm hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-center flex items-center justify-center"
-              >
-                Confirm Attendance
-              </Link>
-            </div>
+            <Link
+              href="/confirm"
+              className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg font-medium text-sm hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-center flex items-center justify-center"
+            >
+              Confirm Attendance
+            </Link>
             {/* <Link
               href="/admin"
               className="w-full px-8 py-4 bg-black text-white rounded-lg font-semibold text-lg hover:bg-gray-900 transition-all duration-300 ease-in-out transform hover:scale-105 text-center flex items-center justify-center"

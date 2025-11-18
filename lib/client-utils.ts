@@ -19,42 +19,12 @@ export async function registerAttendee(data: { name: string; phone: string }) {
   return result;
 }
 
-export async function retrieveQRCodesByPhone(phone: string) {
-  const formattedPhone = formatPhoneNumber(phone);
-
-  const { data: attendee, error: attendeeError } = await supabase
-    .from("attendees")
-    .select("uid, name, qr_day1_image_url, qr_day2_image_url, qr_day3_image_url, qr_day4_image_url")
-    .eq("phone", formattedPhone)
-    .single();
-
-  if (attendeeError || !attendee) {
-    throw new Error("No attendee found with this phone number");
-  }
-
-  if (!attendee.qr_day1_image_url || !attendee.qr_day2_image_url || !attendee.qr_day3_image_url || !attendee.qr_day4_image_url) {
-    throw new Error("QR codes not found. Please contact support.");
-  }
-
-  return {
-    success: true,
-    uid: attendee.uid,
-    name: attendee.name,
-    qr_image_urls: {
-      day1: attendee.qr_day1_image_url,
-      day2: attendee.qr_day2_image_url,
-      day3: attendee.qr_day3_image_url,
-      day4: attendee.qr_day4_image_url,
-    },
-  };
-}
-
 export async function confirmAttendanceByPhone(phone: string) {
   const formattedPhone = formatPhoneNumber(phone);
 
   const { data: attendee, error: attendeeError } = await supabase
     .from("attendees")
-    .select("id, uid, name, qr_day1_image_url, qr_day2_image_url, qr_day3_image_url, qr_day4_image_url")
+    .select("id, uid, name")
     .eq("phone", formattedPhone)
     .single();
 
@@ -87,11 +57,5 @@ export async function confirmAttendanceByPhone(phone: string) {
       name: attendee.name,
     },
     attendance,
-    qr_image_urls: {
-      day1: attendee.qr_day1_image_url,
-      day2: attendee.qr_day2_image_url,
-      day3: attendee.qr_day3_image_url,
-      day4: attendee.qr_day4_image_url,
-    },
   };
 }
