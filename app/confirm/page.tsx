@@ -38,41 +38,52 @@ interface AttendanceResult {
 
 export default function ConfirmPage() {
   const [phone, setPhone] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<AttendanceResult | null>(null);
   const [error, setError] = useState("");
   const [fullscreenQR, setFullscreenQR] = useState<string | null>(null);
   const [hasPhoneInStorage, setHasPhoneInStorage] = useState(false);
+  const [initialCheck, setInitialCheck] = useState(true);
 
   const programStarted = isProgramStarted();
   const currentDay = getCurrentDay();
   const pastDays = getPastDays();
 
-  const checkAttendance = React.useCallback(async (phoneNumber: string) => {
-    const digitsOnly = phoneNumber.replace(/\D/g, "");
-    if (digitsOnly.length !== 11) {
-      setError("Phone number must be exactly 11 digits");
-      return;
-    }
+  const checkAttendance = React.useCallback(
+    async (phoneNumber: string, saveToStorage = false) => {
+      const digitsOnly = phoneNumber.replace(/\D/g, "");
+      if (digitsOnly.length !== 11) {
+        setError("Phone number must be exactly 11 digits");
+        setLoading(false);
+        setInitialCheck(false);
+        return;
+      }
 
-    setLoading(true);
-    setError("");
-    setResult(null);
+      setLoading(true);
+      setError("");
+      setResult(null);
 
-    try {
-      const data = await confirmAttendanceByPhone(phoneNumber);
-      setResult(data);
-    } catch (error) {
-      console.error("Confirm error:", error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to fetch attendance. Please try again.";
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      try {
+        const data = await confirmAttendanceByPhone(phoneNumber);
+        setResult(data);
+        if (saveToStorage) {
+          localStorage.setItem("wrc_phone", digitsOnly);
+        }
+      } catch (error) {
+        console.error("Confirm error:", error);
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch attendance. Please try again.";
+        setError(message);
+        setHasPhoneInStorage(false);
+      } finally {
+        setLoading(false);
+        setInitialCheck(false);
+      }
+    },
+    []
+  );
 
   React.useEffect(() => {
     if (programStarted) {
@@ -80,17 +91,26 @@ export default function ConfirmPage() {
       if (savedPhone) {
         setPhone(savedPhone);
         setHasPhoneInStorage(true);
-        setLoading(true);
-        checkAttendance(savedPhone);
+        checkAttendance(savedPhone, false);
+      } else {
+        setLoading(false);
+        setInitialCheck(false);
       }
+    } else {
+      setLoading(false);
+      setInitialCheck(false);
     }
   }, [programStarted, checkAttendance]);
 
+  React.useEffect(() => {
+    return () => {
+      setError("");
+    };
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formattedPhone = phone.replace(/\D/g, "");
-    localStorage.setItem("wrc_phone", formattedPhone);
-    await checkAttendance(phone);
+    await checkAttendance(phone, true);
   };
 
   const isRegisteredForToday =
@@ -142,9 +162,12 @@ export default function ConfirmPage() {
     );
   }
 
+  if (initialCheck || loading) {
+    return <Loader />;
+  }
+
   return (
     <>
-      {loading && <Loader />}
       <BackgroundWrapper className="flex items-center justify-center py-12 px-4 md:block">
         <div className="max-w-2xl mx-auto flex justify-center md:block">
           <Card className="w-full md:w-auto">
@@ -153,25 +176,25 @@ export default function ConfirmPage() {
               WRC 2025 - Spirit Chapel International Church
             </p>
 
-            {!hasPhoneInStorage && !result && (
-              <form onSubmit={handleSubmit} className="mb-6">
-                <div className="flex gap-2">
+            {(!hasPhoneInStorage || error) && !result && (
+              <form onSubmit={handleSubmit} className="mb-6 space-y-4">
+                <div>
                   <input
                     type="tel"
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="Enter your phone number"
-                    className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
                   />
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50"
-                  >
-                    {loading ? "Checking..." : "Check"}
-                  </button>
                 </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 transition-all duration-300 ease-in-out transform hover:scale-105"
+                >
+                  {loading ? "Checking..." : "Check Attendance"}
+                </button>
               </form>
             )}
 
@@ -300,8 +323,10 @@ export default function ConfirmPage() {
                   onClick={() => {
                     setResult(null);
                     setPhone("");
+                    setError("");
+                    setHasPhoneInStorage(false);
                   }}
-                  className="w-full py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 mb-4"
+                  className="w-full py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 mb-4 transition-all duration-300 ease-in-out"
                 >
                   Check Another Number
                 </button>

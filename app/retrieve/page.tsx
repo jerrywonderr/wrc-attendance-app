@@ -5,7 +5,6 @@ import Card from "@/components/Card";
 import Loader from "@/components/Loader";
 import { retrieveQRCodesByPhone } from "@/lib/client-utils";
 import { yupResolver } from "@hookform/resolvers/yup";
-import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -47,44 +46,61 @@ export default function RetrievePage() {
   const [name, setName] = React.useState("");
   const [error, setError] = React.useState("");
   const [hasPhoneInStorage, setHasPhoneInStorage] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
+  const [initialCheck, setInitialCheck] = React.useState(true);
 
-  const retrieveQR = React.useCallback(async (phoneNumber: string) => {
-    setError("");
-    setLoading(true);
-    try {
-      const result = await retrieveQRCodesByPhone(phoneNumber);
+  const retrieveQR = React.useCallback(
+    async (phoneNumber: string, saveToStorage = false) => {
+      setError("");
+      setLoading(true);
+      try {
+        const result = await retrieveQRCodesByPhone(phoneNumber);
 
-      if (result.success) {
-        setUid(result.uid);
-        setName(result.name);
-        setQrImageUrls(result.qr_image_urls);
-        setRetrieved(true);
+        if (result.success) {
+          setUid(result.uid);
+          setName(result.name);
+          setQrImageUrls(result.qr_image_urls);
+          setRetrieved(true);
+          if (saveToStorage) {
+            const formattedPhone = phoneNumber.replace(/\D/g, "");
+            localStorage.setItem("wrc_phone", formattedPhone);
+          }
+        }
+      } catch (error) {
+        console.error("Retrieve error:", error);
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Failed to retrieve QR codes. Please try again.";
+        setError(message);
+        setHasPhoneInStorage(false);
+      } finally {
+        setLoading(false);
+        setInitialCheck(false);
       }
-    } catch (error) {
-      console.error("Retrieve error:", error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to retrieve QR codes. Please try again.";
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   React.useEffect(() => {
     const savedPhone = localStorage.getItem("wrc_phone");
     if (savedPhone) {
       setHasPhoneInStorage(true);
-      retrieveQR(savedPhone);
+      retrieveQR(savedPhone, false);
+    } else {
+      setLoading(false);
+      setInitialCheck(false);
     }
   }, [retrieveQR]);
 
+  React.useEffect(() => {
+    return () => {
+      setError("");
+    };
+  }, []);
+
   const onSubmit = async (data: FormData) => {
-    const formattedPhone = data.phone.replace(/\D/g, "");
-    localStorage.setItem("wrc_phone", formattedPhone);
-    await retrieveQR(data.phone);
+    await retrieveQR(data.phone, true);
   };
 
   const downloadQR = (day: number, imageUrl: string) => {
@@ -117,77 +133,103 @@ export default function RetrievePage() {
   if (retrieved && qrImageUrls) {
     return (
       <BackgroundWrapper className="flex items-center justify-center py-12 px-4 md:block">
-        <div className="max-w-4xl mx-auto flex justify-center md:block">
+        <div className="max-w-2xl mx-auto flex justify-center md:block">
           <Card className="w-full md:w-auto">
             <h1 className="text-3xl font-bold mb-2">Your QR Codes</h1>
             <p className="text-gray-600 mb-4">
               WRC 2025 - Spirit Chapel International Church
             </p>
-            <p className="text-gray-600 mb-4">
-              Name: <strong>{name}</strong>
-            </p>
-            <p className="text-gray-600 mb-4">
-              Your UID: <strong>{uid}</strong>
-            </p>
-            <p className="text-gray-600 mb-4">
-              Please save these QR codes for each day:
-            </p>
-
-            <div className="flex gap-2 justify-center mb-6">
-              <button
-                onClick={downloadAll}
-                className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
-              >
-                Download All QR Codes
-              </button>
-              <button
-                onClick={shareAllWhatsApp}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
-              >
-                Share All via WhatsApp
-              </button>
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+              <p className="text-gray-700 mb-1">
+                <span className="font-semibold">Name:</span> {name}
+              </p>
+              <p className="text-gray-700">
+                <span className="font-semibold">UID:</span> {uid}
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {[1, 2, 3, 4].map((day) => (
-                <div key={day} className="border rounded-lg p-4 text-center">
-                  <h3 className="text-xl font-semibold mb-4">Day {day}</h3>
-                  <div className="mb-4 flex justify-center">
-                    <Image
-                      src={qrImageUrls[`day${day}` as keyof QRData]}
-                      alt={`Day ${day} QR Code`}
-                      width={200}
-                      height={200}
-                      className="border rounded"
-                    />
-                  </div>
-                  <div className="flex gap-2 justify-center">
-                    <button
-                      onClick={() =>
-                        downloadQR(
-                          day,
-                          qrImageUrls[`day${day}` as keyof QRData]
-                        )
-                      }
-                      className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-                    >
-                      Download
-                    </button>
-                    <button
-                      onClick={() =>
-                        shareWhatsApp(
-                          day,
-                          qrImageUrls[`day${day}` as keyof QRData]
-                        )
-                      }
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                    >
-                      Share WhatsApp
-                    </button>
-                  </div>
-                </div>
-              ))}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-4 text-center">
+                Download or Share All QR Codes
+              </h3>
+              <div className="flex flex-col sm:flex-row gap-3 gap-y-3 mb-6">
+                <button
+                  onClick={downloadAll}
+                  className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center gap-2"
+                >
+                  <span>📥</span>
+                  <span>Download All QR Codes</span>
+                </button>
+                <button
+                  onClick={shareAllWhatsApp}
+                  className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center gap-2"
+                >
+                  <span>💬</span>
+                  <span>Share All via WhatsApp</span>
+                </button>
+              </div>
             </div>
+
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-4 text-center">
+                Individual QR Codes
+              </h3>
+              <div className="space-y-3 gap-y-3">
+                {[1, 2, 3, 4].map((day) => (
+                  <div
+                    key={day}
+                    className="border rounded-lg p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center font-semibold text-purple-700">
+                        {day}
+                      </div>
+                      <span className="font-medium text-gray-700">
+                        Day {day}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() =>
+                          downloadQR(
+                            day,
+                            qrImageUrls[`day${day}` as keyof QRData]
+                          )
+                        }
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-sm font-semibold"
+                      >
+                        Download
+                      </button>
+                      <button
+                        onClick={() =>
+                          shareWhatsApp(
+                            day,
+                            qrImageUrls[`day${day}` as keyof QRData]
+                          )
+                        }
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-sm font-semibold"
+                      >
+                        Share
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                setRetrieved(false);
+                setQrImageUrls(null);
+                setUid("");
+                setName("");
+                setError("");
+                setHasPhoneInStorage(false);
+              }}
+              className="w-full py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 mb-4"
+            >
+              Check Another Number
+            </button>
 
             <div className="text-center">
               <Link href="/" className="text-purple-600 hover:underline">
@@ -200,9 +242,12 @@ export default function RetrievePage() {
     );
   }
 
+  if (initialCheck || loading) {
+    return <Loader />;
+  }
+
   return (
     <>
-      {loading && <Loader />}
       <BackgroundWrapper className="flex items-center justify-center py-12 px-4 md:block">
         <div className="max-w-2xl mx-auto flex justify-center md:block">
           <Card className="w-full md:w-auto">
@@ -220,7 +265,7 @@ export default function RetrievePage() {
               </div>
             )}
 
-            {!hasPhoneInStorage && !retrieved && (
+            {(!hasPhoneInStorage || error) && !retrieved && (
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
