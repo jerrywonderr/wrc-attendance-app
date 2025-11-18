@@ -35,6 +35,7 @@ export default function RetrievePage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: yupResolver(schema),
@@ -87,11 +88,12 @@ export default function RetrievePage() {
     if (savedPhone) {
       setHasPhoneInStorage(true);
       retrieveQR(savedPhone, false);
+      setValue("phone", savedPhone);
     } else {
       setLoading(false);
       setInitialCheck(false);
     }
-  }, [retrieveQR]);
+  }, [retrieveQR, setValue]);
 
   React.useEffect(() => {
     return () => {
