@@ -14,7 +14,7 @@ import {
 } from "@/lib/dates";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import React from "react";
+import React, { Suspense } from "react";
 
 interface AttendanceResult {
   success: boolean;
@@ -31,6 +31,14 @@ interface AttendanceResult {
 }
 
 export default function ConfirmPage() {
+  return (
+    <Suspense fallback={<Loader />}>
+      <ConfirmPageContent />
+    </Suspense>
+  );
+}
+
+function ConfirmPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tokenParam = searchParams?.get("token");
@@ -91,10 +99,7 @@ export default function ConfirmPage() {
 
   const persistTokenFeedback = (type: "success" | "error", message: string) => {
     if (typeof window === "undefined") return;
-    sessionStorage.setItem(
-      "token_feedback",
-      JSON.stringify({ type, message })
-    );
+    sessionStorage.setItem("token_feedback", JSON.stringify({ type, message }));
   };
 
   const handleTokenCheck = React.useCallback(
@@ -150,7 +155,10 @@ export default function ConfirmPage() {
     if (typeof window === "undefined") return;
     const stored = sessionStorage.getItem("token_feedback");
     if (stored) {
-      const payload = JSON.parse(stored) as { type: "success" | "error"; message: string };
+      const payload = JSON.parse(stored) as {
+        type: "success" | "error";
+        message: string;
+      };
       if (payload.type === "success") {
         setTokenMessage(payload.message);
       } else {
@@ -233,7 +241,7 @@ export default function ConfirmPage() {
             <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg p-8 mb-6">
               <h2 className="text-2xl font-bold mb-4">🎉 Get Ready!</h2>
               <p className="text-lg mb-2">
-                The WRC 2025 program starts on {" "}
+                The WRC 2025 program starts on{" "}
                 <strong>{formatDate(getDayDate(1))}</strong>
               </p>
               <p className="text-lg mb-4">
@@ -249,7 +257,10 @@ export default function ConfirmPage() {
                 <p>Day 4: {formatDate(getDayDate(4))}</p>
               </div>
             </div>
-            <Link href="/" className="text-purple-600 hover:underline inline-block">
+            <Link
+              href="/"
+              className="text-purple-600 hover:underline inline-block"
+            >
               ← Back to Home
             </Link>
           </Card>
@@ -349,17 +360,22 @@ export default function ConfirmPage() {
             <div>
               <div className="mb-4">
                 <p className="text-lg font-semibold">{result.attendee.name}</p>
-                <p className="text-gray-600 text-sm">UID: {result.attendee.uid}</p>
+                <p className="text-gray-600 text-sm">
+                  UID: {result.attendee.uid}
+                </p>
               </div>
 
               {currentDay !== null && (
                 <div className="mb-4 bg-purple-50 border border-purple-200 rounded-lg p-4">
                   <p className="text-sm text-gray-700 mb-1">
-                    {getDayName(currentDay)} — {formatDate(getDayDate(currentDay))}
+                    {getDayName(currentDay)} —{" "}
+                    {formatDate(getDayDate(currentDay))}
                   </p>
                   <p
                     className={`text-lg font-semibold ${
-                      isRegisteredForToday ? "text-green-700" : "text-orange-700"
+                      isRegisteredForToday
+                        ? "text-green-700"
+                        : "text-orange-700"
                     }`}
                   >
                     {isRegisteredForToday
@@ -376,7 +392,10 @@ export default function ConfirmPage() {
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {pastDays.map((day) => {
-                      const log = result.attendance[`day${day}` as keyof typeof result.attendance];
+                      const log =
+                        result.attendance[
+                          `day${day}` as keyof typeof result.attendance
+                        ];
                       const isPresent = log !== null;
 
                       return (
