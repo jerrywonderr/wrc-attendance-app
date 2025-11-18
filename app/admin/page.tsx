@@ -130,11 +130,11 @@ export default function AdminPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter admin password"
-              className="w-full px-4 py-2 border rounded-lg mb-4 focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded-lg mb-4 focus:ring-2 focus:ring-purple-500"
             />
             <button
               type="submit"
-              className="w-full py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+              className="w-full py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
             >
               Login
             </button>
@@ -198,7 +198,7 @@ export default function AdminPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name or phone..."
-              className="flex-1 min-w-[200px] px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="flex-1 min-w-[200px] px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
             />
             <div className="flex gap-2">
               {[1, 2, 3, 4].map((day) => (

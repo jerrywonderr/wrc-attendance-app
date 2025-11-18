@@ -1,5 +1,8 @@
 "use client";
 
+import BackgroundWrapper from "@/components/BackgroundWrapper";
+import Card from "@/components/Card";
+import Loader from "@/components/Loader";
 import { retrieveQRCodesByPhone } from "@/lib/client-utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Image from "next/image";
@@ -43,11 +46,14 @@ export default function RetrievePage() {
   const [uid, setUid] = React.useState("");
   const [name, setName] = React.useState("");
   const [error, setError] = React.useState("");
+  const [hasPhoneInStorage, setHasPhoneInStorage] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
 
-  const onSubmit = async (data: FormData) => {
+  const retrieveQR = React.useCallback(async (phoneNumber: string) => {
     setError("");
+    setLoading(true);
     try {
-      const result = await retrieveQRCodesByPhone(data.phone);
+      const result = await retrieveQRCodesByPhone(phoneNumber);
 
       if (result.success) {
         setUid(result.uid);
@@ -62,7 +68,23 @@ export default function RetrievePage() {
           ? error.message
           : "Failed to retrieve QR codes. Please try again.";
       setError(message);
+    } finally {
+      setLoading(false);
     }
+  }, []);
+
+  React.useEffect(() => {
+    const savedPhone = localStorage.getItem("wrc_phone");
+    if (savedPhone) {
+      setHasPhoneInStorage(true);
+      retrieveQR(savedPhone);
+    }
+  }, [retrieveQR]);
+
+  const onSubmit = async (data: FormData) => {
+    const formattedPhone = data.phone.replace(/\D/g, "");
+    localStorage.setItem("wrc_phone", formattedPhone);
+    await retrieveQR(data.phone);
   };
 
   const downloadQR = (day: number, imageUrl: string) => {
@@ -94,9 +116,9 @@ export default function RetrievePage() {
 
   if (retrieved && qrImageUrls) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-8">
+      <BackgroundWrapper className="flex items-center justify-center py-12 px-4 md:block">
+        <div className="max-w-4xl mx-auto flex justify-center md:block">
+          <Card className="w-full md:w-auto">
             <h1 className="text-3xl font-bold mb-2">Your QR Codes</h1>
             <p className="text-gray-600 mb-4">
               WRC 2025 - Spirit Chapel International Church
@@ -114,7 +136,7 @@ export default function RetrievePage() {
             <div className="flex gap-2 justify-center mb-6">
               <button
                 onClick={downloadAll}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+                className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
               >
                 Download All QR Codes
               </button>
@@ -147,7 +169,7 @@ export default function RetrievePage() {
                           qrImageUrls[`day${day}` as keyof QRData]
                         )
                       }
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
                     >
                       Download
                     </button>
@@ -168,67 +190,72 @@ export default function RetrievePage() {
             </div>
 
             <div className="text-center">
-              <Link href="/" className="text-blue-600 hover:underline">
+              <Link href="/" className="text-purple-600 hover:underline">
                 ← Back to Home
               </Link>
             </div>
-          </div>
+          </Card>
         </div>
-      </div>
+      </BackgroundWrapper>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold mb-2">Retrieve Your QR Codes</h1>
-          <p className="text-gray-600 mb-6">
-            WRC 2025 - Spirit Chapel International Church
-          </p>
-          <p className="text-gray-500 mb-6">
-            Enter your phone number to retrieve your QR codes
-          </p>
+    <>
+      {loading && <Loader />}
+      <BackgroundWrapper className="flex items-center justify-center py-12 px-4 md:block">
+        <div className="max-w-2xl mx-auto flex justify-center md:block">
+          <Card className="w-full md:w-auto">
+            <h1 className="text-3xl font-bold mb-2">Retrieve Your QR Codes</h1>
+            <p className="text-gray-600 mb-6">
+              WRC 2025 - Spirit Chapel International Church
+            </p>
+            <p className="text-gray-500 mb-6">
+              Enter your phone number to retrieve your QR codes
+            </p>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-              {error}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                {error}
+              </div>
+            )}
+
+            {!hasPhoneInStorage && !retrieved && (
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    {...register("phone")}
+                    placeholder="e.g., 08012345678"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  />
+                  {errors.phone && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.phone.message}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {isSubmitting ? "Retrieving..." : "Retrieve QR Codes"}
+                </button>
+              </form>
+            )}
+
+            <div className="mt-6 text-center">
+              <Link href="/" className="text-purple-600 hover:underline">
+                ← Back to Home
+              </Link>
             </div>
-          )}
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Phone Number *
-              </label>
-              <input
-                type="tel"
-                {...register("phone")}
-                placeholder="e.g., 08012345678"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-              {errors.phone && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.phone.message}
-                </p>
-              )}
-            </div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
-            >
-              {isSubmitting ? "Retrieving..." : "Retrieve QR Codes"}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <Link href="/" className="text-blue-600 hover:underline">
-              ← Back to Home
-            </Link>
-          </div>
+          </Card>
         </div>
-      </div>
-    </div>
+      </BackgroundWrapper>
+    </>
   );
 }

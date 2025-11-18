@@ -1,5 +1,7 @@
 "use client";
 
+import BackgroundWrapper from "@/components/BackgroundWrapper";
+import Card from "@/components/Card";
 import { registerAttendee } from "@/lib/client-utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Image from "next/image";
@@ -51,6 +53,8 @@ export default function RegisterPage() {
       const result = await registerAttendee(data);
 
       if (result.success) {
+        const formattedPhone = data.phone.replace(/\D/g, "");
+        localStorage.setItem("wrc_phone", formattedPhone);
         setUid(result.uid);
         setQrImageUrls(result.qr_image_urls);
         setRegistered(true);
@@ -94,9 +98,9 @@ export default function RegisterPage() {
 
   if (registered && qrImageUrls) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-8">
+      <BackgroundWrapper className="flex items-center justify-center py-12 px-4 md:block">
+        <div className="max-w-4xl mx-auto flex justify-center md:block">
+          <Card className="w-full md:w-auto">
             <h1 className="text-3xl font-bold mb-2">
               Registration Successful!
             </h1>
@@ -106,14 +110,37 @@ export default function RegisterPage() {
             <p className="text-gray-600 mb-4">
               Your UID: <strong>{uid}</strong>
             </p>
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+              <h3 className="font-semibold text-purple-900 mb-2">
+                💡 Quick Access Feature
+              </h3>
+              <p className="text-purple-800 text-sm mb-2">
+                <strong>Good news!</strong> You don&apos;t need to download
+                these QR codes if you don&apos;t want to. During the program
+                (Dec 11-14), you can simply visit the{" "}
+                <Link href="/confirm" className="underline font-semibold">
+                  Confirm Attendance
+                </Link>{" "}
+                page and enter your phone number to:
+              </p>
+              <ul className="text-purple-800 text-sm list-disc list-inside space-y-1">
+                <li>View your attendance status for each day</li>
+                <li>Access your QR code for the current day</li>
+                <li>See if you&apos;ve been scanned in for today</li>
+              </ul>
+              <p className="text-purple-800 text-sm mt-2">
+                Downloading is optional - use it if you prefer to have the QR
+                codes saved on your device!
+              </p>
+            </div>
             <p className="text-gray-600 mb-4">
-              Please save these QR codes for each day:
+              Or download these QR codes for each day (optional):
             </p>
 
             <div className="flex gap-2 justify-center mb-6">
               <button
                 onClick={downloadAll}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+                className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
               >
                 Download All QR Codes
               </button>
@@ -146,7 +173,7 @@ export default function RegisterPage() {
                           qrImageUrls[`day${day}` as keyof QRData]
                         )
                       }
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
                     >
                       Download
                     </button>
@@ -167,20 +194,20 @@ export default function RegisterPage() {
             </div>
 
             <div className="text-center">
-              <Link href="/" className="text-blue-600 hover:underline">
+              <Link href="/" className="text-purple-600 hover:underline">
                 ← Back to Home
               </Link>
             </div>
-          </div>
+          </Card>
         </div>
-      </div>
+      </BackgroundWrapper>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+    <BackgroundWrapper className="py-12 px-4">
+      <div className="max-w-2xl mx-auto flex justify-center md:block">
+        <Card className="w-full md:w-auto">
           <h1 className="text-3xl font-bold mb-2">WRC 2025 Registration</h1>
           <p className="text-gray-600 mb-6">
             Spirit Chapel International Church
@@ -191,7 +218,7 @@ export default function RegisterPage() {
               <input
                 type="text"
                 {...register("name")}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
               />
               {errors.name && (
                 <p className="text-red-500 text-sm mt-1">
@@ -207,7 +234,7 @@ export default function RegisterPage() {
                 type="tel"
                 {...register("phone")}
                 placeholder="e.g., 08012345678"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
               />
               {errors.phone && (
                 <p className="text-red-500 text-sm mt-1">
@@ -218,13 +245,13 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
+              className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50"
             >
               {isSubmitting ? "Registering..." : "Register"}
             </button>
           </form>
-        </div>
+        </Card>
       </div>
-    </div>
+    </BackgroundWrapper>
   );
 }

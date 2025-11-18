@@ -1,3 +1,4 @@
+import { isDayReached } from "@/lib/dates";
 import { verifyQRSignature } from "@/lib/qr";
 import { supabaseAdmin } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
@@ -54,6 +55,16 @@ export async function POST(request: NextRequest) {
     if (day < 1 || day > 4) {
       return NextResponse.json(
         { success: false, reason: "Invalid day (must be 1-4)" },
+        { status: 400 }
+      );
+    }
+
+    if (!isDayReached(day)) {
+      return NextResponse.json(
+        {
+          success: false,
+          reason: `Day ${day} has not started yet. QR codes can only be scanned on their respective program day.`,
+        },
         { status: 400 }
       );
     }

@@ -95,7 +95,7 @@ export async function confirmAttendanceByPhone(phone: string) {
 
   const { data: attendee, error: attendeeError } = await supabase
     .from("attendees")
-    .select("id, uid, name")
+    .select("id, uid, name, qr_day1_image_url, qr_day2_image_url, qr_day3_image_url, qr_day4_image_url")
     .eq("phone", formattedPhone)
     .single();
 
@@ -128,5 +128,11 @@ export async function confirmAttendanceByPhone(phone: string) {
       name: attendee.name,
     },
     attendance,
+    qr_image_urls: {
+      day1: attendee.qr_day1_image_url,
+      day2: attendee.qr_day2_image_url,
+      day3: attendee.qr_day3_image_url,
+      day4: attendee.qr_day4_image_url,
+    },
   };
 }
