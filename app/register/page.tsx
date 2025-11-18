@@ -104,8 +104,10 @@ export default function RegisterPage() {
     <BackgroundWrapper className="py-12 px-4">
       <div className="max-w-2xl mx-auto flex justify-center md:block">
         <Card className="w-full md:w-auto">
-          <h1 className="text-3xl font-bold mb-2">WRC 2025 Registration</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-3xl font-bold mb-2 text-center">
+            WRC 2025 Registration
+          </h1>
+          <p className="text-gray-600 mb-6 text-center">
             Spirit Chapel International Church
           </p>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
