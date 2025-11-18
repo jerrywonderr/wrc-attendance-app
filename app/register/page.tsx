@@ -65,20 +65,39 @@ export default function RegisterPage() {
       <BackgroundWrapper className="flex items-center justify-center py-12 px-4">
         <div className="max-w-2xl mx-auto w-full flex justify-center">
           <Card className="w-full md:w-auto text-center">
-            <h1 className="text-3xl font-bold mb-2">Registration Successful</h1>
+            <h1 className="text-3xl font-bold mb-2">Voucher Reserved</h1>
             <p className="text-gray-600 mb-6">
               Thank you, {name}! Your UID is <strong>{uid}</strong>.
             </p>
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6 text-left">
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6 text-left space-y-3">
               <p className="text-gray-700">
                 Keep your registered phone number handy. Each day of WRC 2025,
                 scan the official QR code displayed at the venue, and we&apos;ll
                 automatically confirm your attendance.
               </p>
-              {/* <p className="text-gray-700 mt-3">
-                You can always head to the Confirm Attendance page to review
-                your status.
-              </p> */}
+              <p className="text-gray-700">
+                Hold on to your Gift Voucher—“Because in this house, everyone
+                goes home with something — tangible or divine!”
+              </p>
+              <div className="text-sm text-gray-700 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <p className="font-semibold text-purple-800">Dates</p>
+                  <p>11th–14th Dec. 2025</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-purple-800">Schedule</p>
+                  <p>Thu–Sat: 5 PM • Sun: 8 AM & 10 AM</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-purple-800">Venue</p>
+                  <p>
+                    Miracle Tent beside Havana Royale, beside First Bank, UI
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">
+                Terms and conditions apply.
+              </p>
             </div>
             <div className="flex flex-col gap-3">
               {/* <Link
@@ -105,11 +124,45 @@ export default function RegisterPage() {
       <div className="max-w-2xl mx-auto flex justify-center md:block">
         <Card className="w-full md:w-auto">
           <h1 className="text-3xl font-bold mb-2 text-center">
-            WRC 2025 Registration
+            Claim Your Gift Voucher
           </h1>
           <p className="text-gray-600 mb-6 text-center">
             Spirit Chapel International Church
           </p>
+          <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6 text-sm text-gray-700">
+            <p className="font-semibold text-purple-800 uppercase tracking-widest mb-1">
+              Gift Voucher Info
+            </p>
+            <p>
+              Hold on to this Gift Voucher. You could be one of our blessed
+              winners today! “Because in this house, everyone goes home with
+              something — tangible or divine!”
+            </p>
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <p className="font-semibold text-purple-700 text-xs uppercase">
+                  Dates
+                </p>
+                <p>11th–14th Dec. 2025</p>
+              </div>
+              <div>
+                <p className="font-semibold text-purple-700 text-xs uppercase">
+                  Schedule
+                </p>
+                <p>Thu–Sat: 5 PM daily</p>
+                <p>Sunday: 8 AM & 10 AM</p>
+              </div>
+              <div>
+                <p className="font-semibold text-purple-700 text-xs uppercase">
+                  Venue
+                </p>
+                <p>Miracle Tent beside Havana Royale, beside First Bank, UI</p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Terms and conditions apply.
+            </p>
+          </div>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Name *</label>

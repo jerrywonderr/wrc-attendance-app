@@ -9,9 +9,9 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "WRC 2025 Attendance - Spirit Chapel International Church",
+  title: "WRC 2025 Gift Voucher - Spirit Chapel International Church",
   description:
-    "WRC 2025 Attendance System by Spirit Chapel International Church. Register and track attendance with QR codes.",
+    "Register to claim your WRC 2025 Gift Voucher and scan the daily QR code at the venue to confirm your blessing.",
   icons: {
     icon: [
       { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },

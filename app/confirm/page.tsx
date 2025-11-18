@@ -126,7 +126,7 @@ function ConfirmPage() {
           localStorage.setItem("wrc_phone", digitsOnly);
         }
 
-        const message = data.message || "Attendance confirmed.";
+        const message = data.message || "Voucher confirmed.";
         router.replace(
           `/confirm?tokenStatus=success&message=${encodeURIComponent(message)}`
         );
@@ -232,18 +232,21 @@ function ConfirmPage() {
       <BackgroundWrapper className="flex items-center justify-center py-12 px-4 md:block">
         <div className="max-w-2xl mx-auto flex justify-center md:block">
           <Card className="text-center w-full md:w-auto">
-            <h1 className="text-3xl font-bold mb-4">Confirm Your Attendance</h1>
+            <h1 className="text-3xl font-bold mb-4">
+              Confirm Your Gift Voucher
+            </h1>
             <p className="text-gray-600 mb-6">
-              WRC 2025 - Spirit Chapel International Church
+              WRC 2025 Gift Voucher – Spirit Chapel International Church
             </p>
             <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg p-8 mb-6">
               <h2 className="text-2xl font-bold mb-4">🎉 Get Ready!</h2>
               <p className="text-lg mb-2">
-                The WRC 2025 program starts on{" "}
+                The WRC 2025 celebration starts on{" "}
                 <strong>{formatDate(getDayDate(1))}</strong>
               </p>
               <p className="text-lg mb-4">
-                Scan the daily QR code at the venue to check yourself in.
+                Scan the daily voucher QR at the venue so we can reserve your
+                blessing for that day.
               </p>
             </div>
             <div className="text-gray-600 mb-6">
@@ -275,9 +278,9 @@ function ConfirmPage() {
     <BackgroundWrapper className="flex items-center justify-center py-12 px-4 md:block">
       <div className="max-w-2xl mx-auto flex justify-center md:block">
         <Card className="w-full md:w-auto">
-          <h1 className="text-3xl font-bold mb-2">Confirm Your Attendance</h1>
+          <h1 className="text-3xl font-bold mb-2">Confirm Your Gift Voucher</h1>
           <p className="text-gray-600 mb-6">
-            WRC 2025 - Spirit Chapel International Church
+            WRC 2025 Gift Voucher – Spirit Chapel International Church
           </p>
 
           {tokenMessage && (
@@ -296,10 +299,10 @@ function ConfirmPage() {
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
               <p className="text-sm text-purple-900">
                 {tokenDay
-                  ? `Almost there! Enter your phone number to confirm attendance for ${getDayName(
+                  ? `Almost there! Enter your phone number to secure your voucher for ${getDayName(
                       tokenDay
                     )}.`
-                  : "Almost there! Enter your phone number to confirm attendance."}
+                  : "Almost there! Enter your phone number so we can secure your voucher."}
               </p>
             </div>
           )}
@@ -321,7 +324,7 @@ function ConfirmPage() {
                 disabled={tokenSubmitting}
                 className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 transition-all duration-300 ease-in-out"
               >
-                {tokenSubmitting ? "Checking..." : "Confirm Attendance"}
+                {tokenSubmitting ? "Checking..." : "Confirm Voucher"}
               </button>
             </form>
           )}
@@ -343,7 +346,7 @@ function ConfirmPage() {
                 disabled={loading}
                 className="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 transition-all duration-300 ease-in-out"
               >
-                {loading ? "Checking..." : "Check Attendance"}
+                {loading ? "Checking..." : "Check Voucher"}
               </button>
             </form>
           )}
@@ -377,8 +380,8 @@ function ConfirmPage() {
                     }`}
                   >
                     {isRegisteredForToday
-                      ? "You are checked in for today."
-                      : "You have not checked in yet today."}
+                      ? "Your voucher is confirmed for today."
+                      : "You haven’t confirmed today’s voucher yet."}
                   </p>
                 </div>
               )}
@@ -386,7 +389,7 @@ function ConfirmPage() {
               {pastDays.length > 0 && (
                 <div className="mb-4">
                   <p className="text-xs font-medium text-gray-700 mb-2">
-                    Attendance Status:
+                    Voucher Check-ins:
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {pastDays.map((day) => {
