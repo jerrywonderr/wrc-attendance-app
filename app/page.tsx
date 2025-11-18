@@ -25,12 +25,12 @@ export default function Home() {
             >
               Register Now
             </Link>
-            <Link
+            {/* <Link
               href="/confirm"
               className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg font-medium text-sm hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 text-center flex items-center justify-center"
             >
               Confirm Attendance
-            </Link>
+            </Link> */}
             {/* <Link
               href="/admin"
               className="w-full px-8 py-4 bg-black text-white rounded-lg font-semibold text-lg hover:bg-gray-900 transition-all duration-300 ease-in-out transform hover:scale-105 text-center flex items-center justify-center"

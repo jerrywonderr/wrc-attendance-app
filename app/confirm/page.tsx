@@ -30,15 +30,15 @@ interface AttendanceResult {
   };
 }
 
-export default function ConfirmPage() {
+export default function ConfirmPageWrapper() {
   return (
     <Suspense fallback={<Loader />}>
-      <ConfirmPageContent />
+      <ConfirmPage />
     </Suspense>
   );
 }
 
-function ConfirmPageContent() {
+function ConfirmPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tokenParam = searchParams?.get("token");
@@ -97,11 +97,6 @@ function ConfirmPageContent() {
     []
   );
 
-  const persistTokenFeedback = (type: "success" | "error", message: string) => {
-    if (typeof window === "undefined") return;
-    sessionStorage.setItem("token_feedback", JSON.stringify({ type, message }));
-  };
-
   const handleTokenCheck = React.useCallback(
     async (tokenValue: string, phoneValue?: string, savePhone = false) => {
       setTokenSubmitting(true);
@@ -131,19 +126,20 @@ function ConfirmPageContent() {
           localStorage.setItem("wrc_phone", digitsOnly);
         }
 
-        persistTokenFeedback(
-          "success",
-          data.message || "Attendance confirmed."
+        const message = data.message || "Attendance confirmed.";
+        router.replace(
+          `/confirm?tokenStatus=success&message=${encodeURIComponent(message)}`
         );
-        router.replace("/confirm");
       } catch (tokenError) {
-        persistTokenFeedback(
-          "error",
+        const errorMessage =
           tokenError instanceof Error
             ? tokenError.message
-            : "Unable to process QR code."
+            : "Unable to process QR code.";
+        router.replace(
+          `/confirm?tokenStatus=error&message=${encodeURIComponent(
+            errorMessage
+          )}`
         );
-        router.replace("/confirm");
       } finally {
         setTokenSubmitting(false);
       }
@@ -151,22 +147,24 @@ function ConfirmPageContent() {
     [router]
   );
 
+  const feedbackStatus = searchParams?.get("tokenStatus");
+  const feedbackMessage = searchParams?.get("message");
+
   React.useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = sessionStorage.getItem("token_feedback");
-    if (stored) {
-      const payload = JSON.parse(stored) as {
-        type: "success" | "error";
-        message: string;
-      };
-      if (payload.type === "success") {
-        setTokenMessage(payload.message);
-      } else {
-        setTokenFeedbackError(payload.message);
-      }
-      sessionStorage.removeItem("token_feedback");
+    if (!feedbackStatus || !feedbackMessage) return;
+    if (feedbackStatus === "success") {
+      setTokenMessage(feedbackMessage);
+      setTokenFeedbackError("");
+    } else {
+      setTokenFeedbackError(feedbackMessage);
+      setTokenMessage("");
     }
-  }, []);
+    const params = new URLSearchParams(searchParams?.toString());
+    params.delete("tokenStatus");
+    params.delete("message");
+    const query = params.toString();
+    router.replace(query ? `/confirm?${query}` : "/confirm");
+  }, [feedbackStatus, feedbackMessage, router, searchParams]);
 
   React.useEffect(() => {
     if (tokenParam) {

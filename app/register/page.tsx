@@ -75,18 +75,18 @@ export default function RegisterPage() {
                 scan the official QR code displayed at the venue, and we&apos;ll
                 automatically confirm your attendance.
               </p>
-              <p className="text-gray-700 mt-3">
+              {/* <p className="text-gray-700 mt-3">
                 You can always head to the Confirm Attendance page to review
                 your status.
-              </p>
+              </p> */}
             </div>
             <div className="flex flex-col gap-3">
-              <Link
+              {/* <Link
                 href="/confirm"
                 className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition"
               >
                 Go to Confirm Attendance
-              </Link>
+              </Link> */}
               <Link
                 href="/"
                 className="text-purple-600 hover:underline text-sm"
