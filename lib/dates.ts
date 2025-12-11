@@ -1,9 +1,9 @@
-export const PROGRAM_START_DATE = new Date("2025-16-11T00:00:00");
+export const PROGRAM_START_DATE = new Date("2025-12-11T00:00:00");
 export const PROGRAM_DAYS = [
-  new Date("2025-11-16T00:00:00"),
-  new Date("2025-11-17T00:00:00"),
-  new Date("2025-11-18T00:00:00"),
-  new Date("2025-11-19T00:00:00"),
+  new Date("2025-12-11T00:00:00"),
+  new Date("2025-12-12T00:00:00"),
+  new Date("2025-12-13T00:00:00"),
+  new Date("2025-12-14T00:00:00"),
 ];
 
 export function getDayDate(day: number): Date {
@@ -28,7 +28,7 @@ export function isProgramStarted(): boolean {
 export function getCurrentDay(): number | null {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
-  
+
   for (let day = 1; day <= 4; day++) {
     const dayDate = getDayDate(day);
     dayDate.setHours(0, 0, 0, 0);
@@ -36,7 +36,7 @@ export function getCurrentDay(): number | null {
       return day;
     }
   }
-  
+
   return null;
 }
 
@@ -62,4 +62,3 @@ export function getDayName(day: number): string {
   const dayDate = getDayDate(day);
   return dayDate.toLocaleDateString("en-US", { weekday: "long" });
 }
-
