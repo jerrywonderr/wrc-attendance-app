@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 /**
  * API endpoint to fetch day tokens for generating venue QR links
- * 
+ *
  * Note: In production, you should add proper authentication middleware
  * to verify the user is an admin before returning tokens.
  * Currently, this endpoint is accessible to anyone who knows the URL.
@@ -54,4 +54,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

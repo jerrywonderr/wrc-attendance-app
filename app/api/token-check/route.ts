@@ -1,7 +1,11 @@
-import { getProgramDayFromToken } from "@/lib/tokens";
+import {
+  getCurrentDayDate,
+  getDayName,
+  isWithinConfirmationWindow,
+} from "@/lib/dates";
 import { supabaseAdmin } from "@/lib/supabase";
+import { getProgramDayFromToken } from "@/lib/tokens";
 import { formatPhoneNumber } from "@/lib/utils";
-import { getCurrentDay, getDayName } from "@/lib/dates";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -24,9 +28,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const currentDay = getCurrentDay();
+    const currentDayDate = getCurrentDayDate();
 
-    if (currentDay !== tokenInfo.day) {
+    // Check if it's the correct day
+    if (currentDayDate !== tokenInfo.day) {
       return NextResponse.json(
         {
           success: false,
@@ -36,6 +41,34 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       );
+    }
+
+    // Check if we're within the confirmation window (5pm-9pm)
+    if (!isWithinConfirmationWindow(tokenInfo.day)) {
+      const now = new Date();
+      const hours = now.getHours();
+
+      if (hours < 17) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Confirmation for ${getDayName(
+              tokenInfo.day
+            )} starts at 5:00 PM. Please try again later.`,
+          },
+          { status: 400 }
+        );
+      } else {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Confirmation for ${getDayName(
+              tokenInfo.day
+            )} ended at 9:00 PM.`,
+          },
+          { status: 400 }
+        );
+      }
     }
 
     if (!phone) {
@@ -96,18 +129,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         day: tokenInfo.day,
-        message: `Already checked in for ${getDayName(tokenInfo.day)} at ${new Date(
-          existingLog.scan_time
-        ).toLocaleTimeString()}.`,
+        message: `Already checked in for ${getDayName(
+          tokenInfo.day
+        )} at ${new Date(existingLog.scan_time).toLocaleTimeString()}.`,
       });
     }
 
-    const { error: logError } = await supabaseAdmin.from("attendance_logs").insert({
-      attendee_id: attendee.id,
-      day: tokenInfo.day,
-      status: "present",
-      scanned_by: "daily-token",
-    });
+    const { error: logError } = await supabaseAdmin
+      .from("attendance_logs")
+      .insert({
+        attendee_id: attendee.id,
+        day: tokenInfo.day,
+        status: "present",
+        scanned_by: "daily-token",
+      });
 
     if (logError) {
       console.error("Token check insert error:", logError);

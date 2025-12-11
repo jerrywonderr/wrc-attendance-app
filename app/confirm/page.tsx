@@ -6,7 +6,9 @@ import Loader from "@/components/Loader";
 import { confirmAttendanceByPhone } from "@/lib/client-utils";
 import {
   formatDate,
+  getConfirmationWindowText,
   getCurrentDay,
+  getCurrentDayDate,
   getDayDate,
   getDayName,
   getPastDays,
@@ -58,7 +60,8 @@ function ConfirmPage() {
   const [tokenSubmitting, setTokenSubmitting] = React.useState(false);
 
   const programStarted = isProgramStarted();
-  const currentDay = getCurrentDay();
+  const currentDay = getCurrentDay(); // Only returns day if within confirmation window
+  const currentDayDate = getCurrentDayDate(); // Returns day regardless of time
   const pastDays = getPastDays();
 
   const checkAttendance = React.useCallback(
@@ -223,9 +226,10 @@ function ConfirmPage() {
   };
 
   const isRegisteredForToday =
-    currentDay !== null &&
-    result?.attendance[`day${currentDay}` as keyof typeof result.attendance] !==
-      null;
+    currentDayDate !== null &&
+    result?.attendance[
+      `day${currentDayDate}` as keyof typeof result.attendance
+    ] !== null;
 
   if (!programStarted) {
     return (
@@ -366,23 +370,41 @@ function ConfirmPage() {
                 </p>
               </div>
 
-              {currentDay !== null && (
+              {currentDayDate !== null && (
                 <div className="mb-4 bg-purple-50 border border-purple-200 rounded-lg p-4">
                   <p className="text-sm text-gray-700 mb-1">
-                    {getDayName(currentDay)} —{" "}
-                    {formatDate(getDayDate(currentDay))}
+                    {getDayName(currentDayDate)} —{" "}
+                    {formatDate(getDayDate(currentDayDate))}
                   </p>
-                  <p
-                    className={`text-lg font-semibold ${
-                      isRegisteredForToday
-                        ? "text-green-700"
-                        : "text-orange-700"
-                    }`}
-                  >
-                    {isRegisteredForToday
-                      ? "Your voucher is confirmed for today."
-                      : "You haven’t confirmed today’s voucher yet."}
-                  </p>
+                  {currentDay !== null ? (
+                    <>
+                      <p className="text-xs text-gray-600 mb-2">
+                        Confirmation window: {getConfirmationWindowText()} (Open
+                        now)
+                      </p>
+                      <p
+                        className={`text-lg font-semibold ${
+                          isRegisteredForToday
+                            ? "text-green-700"
+                            : "text-orange-700"
+                        }`}
+                      >
+                        {isRegisteredForToday
+                          ? "Your voucher is confirmed for today."
+                          : "You haven't confirmed today's voucher yet."}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs text-gray-600 mb-2">
+                        Confirmation window: {getConfirmationWindowText()}
+                      </p>
+                      <p className="text-lg font-semibold text-gray-600">
+                        Confirmation is currently closed. Please return between
+                        5:00 PM and 9:00 PM to confirm your voucher.
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
 

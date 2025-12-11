@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { formatDate, getDayDate, getDayName } from "@/lib/dates";
+import { useEffect, useState } from "react";
 
 interface Summary {
   total_registered: number;
@@ -242,14 +242,15 @@ export default function AdminPage() {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <h2 className="text-xl font-bold mb-4">Daily Venue QR Links</h2>
           <p className="text-sm text-gray-600 mb-4">
-            Generate and copy links for each day&apos;s venue QR code. These links can be converted to QR codes for display at the venue.
+            Generate and copy links for each day&apos;s venue QR code. These
+            links can be converted to QR codes for display at the venue.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {dayTokens.map((dayToken) => {
               const link = generateDayLink(dayToken.day, dayToken.token);
               const dayDate = getDayDate(dayToken.day);
               const dayName = getDayName(dayToken.day);
-              
+
               return (
                 <div
                   key={dayToken.day}
@@ -297,7 +298,8 @@ export default function AdminPage() {
                   ) : (
                     <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
                       <p className="text-sm text-yellow-800">
-                        ⚠ {dayToken.envKey} is not configured. Set this environment variable to generate the link.
+                        ⚠ {dayToken.envKey} is not configured. Set this
+                        environment variable to generate the link.
                       </p>
                     </div>
                   )}
