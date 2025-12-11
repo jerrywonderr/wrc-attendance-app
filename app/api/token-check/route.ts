@@ -43,18 +43,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if we're within the confirmation window (5pm-9pm)
+    // Check if we're within the confirmation window (4pm-9pm)
     if (!isWithinConfirmationWindow(tokenInfo.day)) {
       const now = new Date();
       const hours = now.getHours();
 
-      if (hours < 17) {
+      if (hours < 16) {
         return NextResponse.json(
           {
             success: false,
             error: `Confirmation for ${getDayName(
               tokenInfo.day
-            )} starts at 5:00 PM. Please try again later.`,
+            )} starts at 4:00 PM. Please try again later.`,
           },
           { status: 400 }
         );

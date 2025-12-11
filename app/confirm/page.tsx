@@ -401,7 +401,7 @@ function ConfirmPage() {
                       </p>
                       <p className="text-lg font-semibold text-gray-600">
                         Confirmation is currently closed. Please return between
-                        5:00 PM and 9:00 PM to confirm your voucher.
+                        4:00 PM and 9:00 PM to confirm your voucher.
                       </p>
                     </>
                   )}

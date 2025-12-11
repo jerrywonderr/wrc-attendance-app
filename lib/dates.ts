@@ -6,8 +6,8 @@ export const PROGRAM_DAYS = [
   new Date("2025-12-14T00:00:00"),
 ];
 
-// Confirmation window: 5pm (17:00) to 9pm (21:00) each day
-export const CONFIRMATION_START_HOUR = 17; // 5pm
+// Confirmation window: 4pm (16:00) to 9pm (21:00) each day
+export const CONFIRMATION_START_HOUR = 16; // 4pm
 export const CONFIRMATION_END_HOUR = 21; // 9pm
 
 export function getDayDate(day: number): Date {
@@ -30,7 +30,7 @@ export function isProgramStarted(): boolean {
 }
 
 /**
- * Checks if the current time is within the confirmation window (5pm-9pm) for a given day
+ * Checks if the current time is within the confirmation window (4pm-9pm) for a given day
  */
 export function isWithinConfirmationWindow(day: number): boolean {
   const now = new Date();
@@ -116,7 +116,7 @@ export function getDayName(day: number): string {
  * Formats the confirmation window time range for a day
  */
 export function getConfirmationWindowText(): string {
-  return `5:00 PM - 9:00 PM`;
+  return `4:00 PM - 9:00 PM`;
 }
 
 /**
