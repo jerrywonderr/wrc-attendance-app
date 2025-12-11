@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate, getDayDate, getDayName } from "@/lib/dates";
 
 interface Summary {
   total_registered: number;
@@ -23,6 +24,13 @@ interface Attendee {
   };
 }
 
+interface DayToken {
+  day: number;
+  hasToken: boolean;
+  envKey: string;
+  token: string | null;
+}
+
 export default function AdminPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
@@ -32,6 +40,8 @@ export default function AdminPage() {
   const [filterDays, setFilterDays] = useState<number[]>([]);
   const [password, setPassword] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
+  const [dayTokens, setDayTokens] = useState<DayToken[]>([]);
+  const [copiedDay, setCopiedDay] = useState<number | null>(null);
 
   useEffect(() => {
     const auth = localStorage.getItem("admin_auth");
@@ -43,9 +53,35 @@ export default function AdminPage() {
   useEffect(() => {
     if (authenticated) {
       fetchData();
+      fetchDayTokens();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authenticated]);
+
+  const fetchDayTokens = async () => {
+    try {
+      const response = await fetch("/api/admin/day-links");
+      const data = await response.json();
+      if (data.success) {
+        setDayTokens(data.dayTokens);
+      }
+    } catch (error) {
+      console.error("Failed to fetch day tokens:", error);
+    }
+  };
+
+  const copyToClipboard = (text: string, day: number) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedDay(day);
+      setTimeout(() => setCopiedDay(null), 2000);
+    });
+  };
+
+  const generateDayLink = (day: number, token: string | null): string => {
+    if (!token) return "";
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    return `${baseUrl}/confirm?token=${encodeURIComponent(token)}`;
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,6 +237,75 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {/* Day Links Generator Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <h2 className="text-xl font-bold mb-4">Daily Venue QR Links</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Generate and copy links for each day&apos;s venue QR code. These links can be converted to QR codes for display at the venue.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {dayTokens.map((dayToken) => {
+              const link = generateDayLink(dayToken.day, dayToken.token);
+              const dayDate = getDayDate(dayToken.day);
+              const dayName = getDayName(dayToken.day);
+              
+              return (
+                <div
+                  key={dayToken.day}
+                  className="border rounded-lg p-4 bg-gray-50"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <h3 className="font-semibold text-lg">
+                        Day {dayToken.day} - {dayName}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {formatDate(dayDate)}
+                      </p>
+                    </div>
+                    {dayToken.hasToken ? (
+                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                        Configured
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">
+                        Missing Token
+                      </span>
+                    )}
+                  </div>
+                  {dayToken.hasToken && link ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          readOnly
+                          value={link}
+                          className="flex-1 px-3 py-2 bg-white border rounded text-sm font-mono text-xs"
+                        />
+                        <button
+                          onClick={() => copyToClipboard(link, dayToken.day)}
+                          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm font-medium whitespace-nowrap"
+                        >
+                          {copiedDay === dayToken.day ? "✓ Copied!" : "Copy"}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Set {dayToken.envKey} environment variable
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                      <p className="text-sm text-yellow-800">
+                        ⚠ {dayToken.envKey} is not configured. Set this environment variable to generate the link.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <p className="text-sm text-gray-600 mb-4">
