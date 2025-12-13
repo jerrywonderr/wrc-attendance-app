@@ -6,8 +6,6 @@ import Loader from "@/components/Loader";
 import { confirmAttendanceByPhone } from "@/lib/client-utils";
 import {
   formatDate,
-  getConfirmationWindowText,
-  getCurrentDay,
   getCurrentDayDate,
   getDayDate,
   getDayName,
@@ -60,8 +58,7 @@ function ConfirmPage() {
   const [tokenSubmitting, setTokenSubmitting] = React.useState(false);
 
   const programStarted = isProgramStarted();
-  const currentDay = getCurrentDay(); // Only returns day if within confirmation window
-  const currentDayDate = getCurrentDayDate(); // Returns day regardless of time
+  const currentDayDate = getCurrentDayDate(); // Returns current day
   const pastDays = getPastDays();
 
   const checkAttendance = React.useCallback(
@@ -376,35 +373,17 @@ function ConfirmPage() {
                     {getDayName(currentDayDate)} —{" "}
                     {formatDate(getDayDate(currentDayDate))}
                   </p>
-                  {currentDay !== null ? (
-                    <>
-                      <p className="text-xs text-gray-600 mb-2">
-                        Confirmation window: {getConfirmationWindowText()} (Open
-                        now)
-                      </p>
-                      <p
-                        className={`text-lg font-semibold ${
-                          isRegisteredForToday
-                            ? "text-green-700"
-                            : "text-orange-700"
-                        }`}
-                      >
-                        {isRegisteredForToday
-                          ? "Your voucher is confirmed for today."
-                          : "You haven't confirmed today's voucher yet."}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-xs text-gray-600 mb-2">
-                        Confirmation window: {getConfirmationWindowText()}
-                      </p>
-                      <p className="text-lg font-semibold text-gray-600">
-                        Confirmation is currently closed. Please return between
-                        4:00 PM and 9:00 PM to confirm your voucher.
-                      </p>
-                    </>
-                  )}
+                  <p
+                    className={`text-lg font-semibold ${
+                      isRegisteredForToday
+                        ? "text-green-700"
+                        : "text-orange-700"
+                    }`}
+                  >
+                    {isRegisteredForToday
+                      ? "Your voucher is confirmed for today."
+                      : "You haven't confirmed today's voucher yet."}
+                  </p>
                 </div>
               )}
 

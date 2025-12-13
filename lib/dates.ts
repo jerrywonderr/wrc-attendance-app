@@ -51,30 +51,9 @@ export function isWithinConfirmationWindow(day: number): boolean {
 }
 
 /**
- * Gets the current day if we're within the confirmation window, otherwise returns null
+ * Gets the current day (confirmation available all day)
  */
 export function getCurrentDay(): number | null {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-
-  for (let day = 1; day <= 4; day++) {
-    const dayDate = getDayDate(day);
-    dayDate.setHours(0, 0, 0, 0);
-    if (now.getTime() === dayDate.getTime()) {
-      // Check if we're within the confirmation window for this day
-      if (isWithinConfirmationWindow(day)) {
-        return day;
-      }
-    }
-  }
-
-  return null;
-}
-
-/**
- * Gets the current day regardless of time window (for display purposes)
- */
-export function getCurrentDayDate(): number | null {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
@@ -87,6 +66,13 @@ export function getCurrentDayDate(): number | null {
   }
 
   return null;
+}
+
+/**
+ * Gets the current day (alias for getCurrentDay for backward compatibility)
+ */
+export function getCurrentDayDate(): number | null {
+  return getCurrentDay();
 }
 
 export function getPastDays(): number[] {

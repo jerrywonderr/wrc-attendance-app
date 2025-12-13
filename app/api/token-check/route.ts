@@ -1,8 +1,4 @@
-import {
-  getCurrentDayDate,
-  getDayName,
-  isWithinConfirmationWindow,
-} from "@/lib/dates";
+import { getCurrentDayDate, getDayName } from "@/lib/dates";
 import { supabaseAdmin } from "@/lib/supabase";
 import { getProgramDayFromToken } from "@/lib/tokens";
 import { formatPhoneNumber } from "@/lib/utils";
@@ -41,34 +37,6 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       );
-    }
-
-    // Check if we're within the confirmation window (4pm-9pm)
-    if (!isWithinConfirmationWindow(tokenInfo.day)) {
-      const now = new Date();
-      const hours = now.getHours();
-
-      if (hours < 16) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Confirmation for ${getDayName(
-              tokenInfo.day
-            )} starts at 4:00 PM. Please try again later.`,
-          },
-          { status: 400 }
-        );
-      } else {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Confirmation for ${getDayName(
-              tokenInfo.day
-            )} ended at 9:00 PM.`,
-          },
-          { status: 400 }
-        );
-      }
     }
 
     if (!phone) {
