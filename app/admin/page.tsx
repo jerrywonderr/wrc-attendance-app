@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDate, getDayDate, getDayName } from "@/lib/dates";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface Summary {
   total_registered: number;
@@ -109,7 +109,7 @@ export default function AdminPage() {
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [summaryRes, attendeesRes] = await Promise.all([
@@ -131,19 +131,30 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search, filterDays]);
 
+  // Reset to page 1 when filters or search change
+  useEffect(() => {
+    if (authenticated) {
+      setPage(1);
+    }
+  }, [filterDays, search, authenticated]);
+
+  // Fetch data when page, search, filterDays, or authentication changes
   useEffect(() => {
     if (authenticated) {
       fetchData();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, search, filterDays, authenticated]);
+  }, [authenticated, fetchData]);
 
   const toggleDayFilter = (day: number) => {
-    setFilterDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
+    setFilterDays((prev) => {
+      if (prev.includes(day)) {
+        return prev.filter((d) => d !== day);
+      } else {
+        return [...prev, day].sort((a, b) => a - b);
+      }
+    });
   };
 
   const exportCSV = () => {
@@ -331,9 +342,9 @@ export default function AdminPage() {
                     type="checkbox"
                     checked={filterDays.includes(day)}
                     onChange={() => toggleDayFilter(day)}
-                    className="w-4 h-4"
+                    className="w-4 h-4 cursor-pointer"
                   />
-                  <span>Day {day}</span>
+                  <span className="select-none">Day {day}</span>
                 </label>
               ))}
             </div>

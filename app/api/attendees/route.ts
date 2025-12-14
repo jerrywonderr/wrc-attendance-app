@@ -16,12 +16,74 @@ export async function GET(request: NextRequest) {
 
     const offset = (page - 1) * limit;
 
+    // If filterDays is specified, we need to filter attendees who have attendance for ALL selected days
+    // We'll use a subquery approach: find attendee_ids that have attendance logs for all selected days
+    let attendeeIds: string[] | null = null;
+
+    if (filterDays.length > 0) {
+      // For each selected day, get the set of attendee_ids who attended that day
+      // Then find the intersection (attendees who attended ALL selected days)
+      const dayAttendeeSets: Set<string>[] = [];
+
+      for (const day of filterDays) {
+        const { data: dayLogs, error: dayError } = await supabaseAdmin
+          .from("attendance_logs")
+          .select("attendee_id")
+          .eq("day", day)
+          .eq("status", "present");
+
+        if (dayError) {
+          console.error(`Error fetching logs for day ${day}:`, dayError);
+          return NextResponse.json(
+            { success: false, error: "Failed to fetch attendance data" },
+            { status: 500 }
+          );
+        }
+
+        dayAttendeeSets.push(
+          new Set(dayLogs?.map((log) => log.attendee_id) || [])
+        );
+      }
+
+      // Find intersection: attendees who appear in ALL day sets
+      if (dayAttendeeSets.length > 0) {
+        const firstSet = dayAttendeeSets[0];
+        const intersection = Array.from(firstSet).filter((attendeeId) =>
+          dayAttendeeSets.every((set) => set.has(attendeeId))
+        );
+        attendeeIds = intersection;
+      } else {
+        attendeeIds = [];
+      }
+    }
+
+    // Build the base query
     let query = supabaseAdmin.from("attendees").select("*", { count: "exact" });
 
+    // Apply search filter
     if (search) {
       query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`);
     }
 
+    // Apply day filter: only include attendees who have attendance for ALL selected days
+    if (attendeeIds !== null) {
+      if (attendeeIds.length === 0) {
+        // No attendees match the filter, return empty result
+        return NextResponse.json({
+          success: true,
+          attendees: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            total_pages: 0,
+          },
+        });
+      }
+      query = query.in("id", attendeeIds);
+    }
+
+    // Execute query with pagination
     const {
       data: attendees,
       error,
@@ -37,29 +99,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { data: allLogs } = await supabaseAdmin
-      .from("attendance_logs")
-      .select("attendee_id, day")
-      .eq("status", "present");
-
+    // Fetch attendance data only for the returned attendees (optimization)
+    const attendeeIdList = attendees?.map((a) => a.id) || [];
     const attendanceMap = new Map<string, Set<number>>();
-    allLogs?.forEach((log) => {
-      if (!attendanceMap.has(log.attendee_id)) {
-        attendanceMap.set(log.attendee_id, new Set());
-      }
-      attendanceMap.get(log.attendee_id)!.add(log.day);
-    });
 
-    let filteredAttendees = attendees || [];
+    if (attendeeIdList.length > 0) {
+      const { data: logs } = await supabaseAdmin
+        .from("attendance_logs")
+        .select("attendee_id, day")
+        .eq("status", "present")
+        .in("attendee_id", attendeeIdList);
 
-    if (filterDays.length > 0) {
-      filteredAttendees = filteredAttendees.filter((attendee) => {
-        const attendeeDays = attendanceMap.get(attendee.id) || new Set();
-        return filterDays.every((day) => attendeeDays.has(day));
+      logs?.forEach((log) => {
+        if (!attendanceMap.has(log.attendee_id)) {
+          attendanceMap.set(log.attendee_id, new Set());
+        }
+        attendanceMap.get(log.attendee_id)!.add(log.day);
       });
     }
 
-    const attendeesWithAttendance = filteredAttendees.map((attendee) => ({
+    // Add attendance data to each attendee
+    const attendeesWithAttendance = (attendees || []).map((attendee) => ({
       ...attendee,
       attendance: {
         day1: attendanceMap.get(attendee.id)?.has(1) || false,
@@ -69,14 +129,17 @@ export async function GET(request: NextRequest) {
       },
     }));
 
+    // Calculate correct total count for filtered results
+    const totalCount = count || 0;
+
     return NextResponse.json({
       success: true,
       attendees: attendeesWithAttendance,
       pagination: {
         page,
         limit,
-        total: count || 0,
-        total_pages: Math.ceil((count || 0) / limit),
+        total: totalCount,
+        total_pages: Math.ceil(totalCount / limit),
       },
     });
   } catch (error) {
