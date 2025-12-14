@@ -44,6 +44,8 @@ export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [dayTokens, setDayTokens] = useState<DayToken[]>([]);
   const [copiedDay, setCopiedDay] = useState<number | null>(null);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(0);
 
   useEffect(() => {
     const auth = localStorage.getItem("admin_auth");
@@ -127,7 +129,13 @@ export default function AdminPage() {
       const attendeesData = await attendeesRes.json();
 
       if (summaryData.success) setSummary(summaryData.summary);
-      if (attendeesData.success) setAttendees(attendeesData.attendees);
+      if (attendeesData.success) {
+        setAttendees(attendeesData.attendees);
+        if (attendeesData.pagination) {
+          setTotalCount(attendeesData.pagination.total || 0);
+          setTotalPages(attendeesData.pagination.total_pages || 0);
+        }
+      }
     } catch (error) {
       console.error("Fetch error:", error);
     } finally {
@@ -444,7 +452,9 @@ export default function AdminPage() {
                               : "bg-green-600 text-white hover:bg-green-700"
                           }`}
                         >
-                          {attendee.voucher_collected ? "Collected" : "Mark as Collected"}
+                          {attendee.voucher_collected
+                            ? "Collected"
+                            : "Mark as Collected"}
                         </button>
                       </td>
                     </tr>
@@ -452,22 +462,42 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
-            <div className="px-4 py-3 border-t flex justify-between">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <span className="py-2">Page {page}</span>
-              <button
-                onClick={() => setPage((p) => p + 1)}
-                disabled={attendees.length < 50}
-                className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-              >
-                Next
-              </button>
+            <div className="px-4 py-3 border-t">
+              <div className="flex justify-between items-center mb-2">
+                <div className="text-sm text-gray-600">
+                  <span className="font-semibold">Total: {totalCount}</span>{" "}
+                  attendee{totalCount !== 1 ? "s" : ""}
+                  {filterDays.length > 0 && (
+                    <span className="ml-2">
+                      (filtered by Day{" "}
+                      {filterDays.sort((a, b) => a - b).join(", ")})
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">
+                  Showing {attendees.length > 0 ? (page - 1) * 50 + 1 : 0} -{" "}
+                  {Math.min(page * 50, totalCount)} of {totalCount}
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300"
+                >
+                  Previous
+                </button>
+                <span className="py-2 text-sm text-gray-700">
+                  Page {page} of {totalPages || 1}
+                </span>
+                <button
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={page >= totalPages}
+                  className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
         )}
