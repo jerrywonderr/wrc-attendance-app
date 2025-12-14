@@ -16,6 +16,8 @@ interface Attendee {
   uid: string;
   name: string;
   phone: string;
+  voucher_collected?: boolean;
+  voucher_collected_at?: string | null;
   attendance?: {
     day1: boolean;
     day2: boolean;
@@ -155,6 +157,40 @@ export default function AdminPage() {
         return [...prev, day].sort((a, b) => a - b);
       }
     });
+  };
+
+  const markAsCollected = async (attendeeId: string, collected: boolean) => {
+    try {
+      const response = await fetch("/api/attendees/mark-collected", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ attendeeId, collected }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update the attendee in the local state
+        setAttendees((prev) =>
+          prev.map((attendee) =>
+            attendee.id === attendeeId
+              ? {
+                  ...attendee,
+                  voucher_collected: data.attendee.voucher_collected,
+                  voucher_collected_at: data.attendee.voucher_collected_at,
+                }
+              : attendee
+          )
+        );
+      } else {
+        alert(data.error || "Failed to update voucher status");
+      }
+    } catch (error) {
+      console.error("Mark collected error:", error);
+      alert("Failed to update voucher status. Please try again.");
+    }
   };
 
   const exportCSV = () => {
@@ -372,6 +408,7 @@ export default function AdminPage() {
                     <th className="px-4 py-3 text-center">Day2</th>
                     <th className="px-4 py-3 text-center">Day3</th>
                     <th className="px-4 py-3 text-center">Day4</th>
+                    <th className="px-4 py-3 text-center">Voucher</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -391,6 +428,24 @@ export default function AdminPage() {
                       </td>
                       <td className="px-4 py-3 text-center">
                         {attendee.attendance?.day4 ? "✓" : "✗"}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() =>
+                            markAsCollected(
+                              attendee.id,
+                              !attendee.voucher_collected
+                            )
+                          }
+                          disabled={attendee.voucher_collected === true}
+                          className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                            attendee.voucher_collected
+                              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                              : "bg-green-600 text-white hover:bg-green-700"
+                          }`}
+                        >
+                          {attendee.voucher_collected ? "Collected" : "Mark as Collected"}
+                        </button>
                       </td>
                     </tr>
                   ))}
